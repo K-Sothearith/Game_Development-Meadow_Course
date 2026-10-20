@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0da25c80da3715e48a841c988a3717ac
+timeCreated: 1468839383
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 67469
+  packageName: Voxel External Decorations Set
+  packageVersion: 1.0
+  assetPath: Assets/Decorations/Materials/wall_2.mat
+  uploadId: 127795

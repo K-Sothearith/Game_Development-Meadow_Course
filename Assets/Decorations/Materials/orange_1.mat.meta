@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f877360968f4a1c43b18a1098917120d
+timeCreated: 1468839384
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 67469
+  packageName: Voxel External Decorations Set
+  packageVersion: 1.0
+  assetPath: Assets/Decorations/Materials/orange_1.mat
+  uploadId: 127795

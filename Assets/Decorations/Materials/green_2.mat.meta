@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 06c2c9d0a6219de4a862c5c1a8e99115
+timeCreated: 1468839384
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 67469
+  packageName: Voxel External Decorations Set
+  packageVersion: 1.0
+  assetPath: Assets/Decorations/Materials/green_2.mat
+  uploadId: 127795

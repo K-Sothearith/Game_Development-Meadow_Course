@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5d0be7a74c74f734892086993a052bee
+timeCreated: 1468839384
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 67469
+  packageName: Voxel External Decorations Set
+  packageVersion: 1.0
+  assetPath: Assets/Decorations/Materials/stone.mat
+  uploadId: 127795

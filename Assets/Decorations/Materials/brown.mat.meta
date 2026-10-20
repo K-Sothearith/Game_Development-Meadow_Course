@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 02d62f4bd7604ac419f2c73a1efcf782
+timeCreated: 1468839384
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 67469
+  packageName: Voxel External Decorations Set
+  packageVersion: 1.0
+  assetPath: Assets/Decorations/Materials/brown.mat
+  uploadId: 127795
