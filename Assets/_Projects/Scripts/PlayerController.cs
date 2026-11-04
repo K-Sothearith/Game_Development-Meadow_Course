@@ -40,10 +40,10 @@ public class PlayerController : MonoBehaviour
     [Header("Jump and Physics (Realistic Gravity)")]
     [SerializeField] private float jumpVelocity = 18f;
     [SerializeField] private float upwardGravityMultiplier = 1f;
-    [SerializeField] private float fallGravityMultiplier = 2.5f;
+    [SerializeField] private float fallGravityMultiplier = 5f;
     [SerializeField] private float lowJumpMultiplier = 1.2f;
     [SerializeField] private bool variableJumpHeight = false;
-    [SerializeField] private float maxFallSpeed = 50f;
+    [SerializeField] private float maxFallSpeed = 70f;
     [SerializeField] private float coyoteTime = 0.2f;
     [SerializeField] private float jumpBufferTime = 0.25f;
 
@@ -73,6 +73,7 @@ public class PlayerController : MonoBehaviour
     private Quaternion initialRotation;
     private GameObject fallbackEffectPrefab;
     private Vector3 externalVelocity;
+    private MovingPlatform supportPlatform;
 
     public Vector3 EffectiveModelOffset
     {
@@ -101,6 +102,7 @@ public class PlayerController : MonoBehaviour
 
         groundedUntil = 0f;
         coyoteCounter = 0f;
+        supportPlatform = null;
         Debug.Log($"[PlayerController] Bounced! Upward: {upwardVelocity}, Forward: {forwardVelocity}");
     }
 
@@ -183,34 +185,25 @@ public class PlayerController : MonoBehaviour
         GameObject blocks = GameObject.Find("blocks");
         if (blocks != null) { Collider c = blocks.GetComponent<Collider>(); if (c != null) c.enabled = false; }
 
-        GameObject spikeParent = GameObject.Find("Spike");
-        if (spikeParent != null)
+        // Use the visible mesh bounds, including spikes outside the main Spike group.
+        // Keep the damage volume low and inset so clearing a tip is safe.
+        foreach (MeshFilter mf in FindObjectsByType<MeshFilter>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            spikeParent.tag = "Hazard";
-            MeshFilter[] filters = spikeParent.GetComponentsInChildren<MeshFilter>(true);
-            foreach (MeshFilter mf in filters)
-            {
-                if (mf == null || mf.sharedMesh == null) continue;
-                GameObject go = mf.gameObject;
-                go.tag = "Hazard";
+            if (mf.sharedMesh == null || !mf.sharedMesh.name.ToLowerInvariant().Contains("spike")) continue;
+            GameObject go = mf.gameObject;
+            go.tag = "Hazard";
 
-                BoxCollider box = go.GetComponent<BoxCollider>();
-                if (box == null) box = go.AddComponent<BoxCollider>();
-                box.isTrigger = true;
-                box.enabled = true;
+            BoxCollider box = go.GetComponent<BoxCollider>();
+            if (box == null) box = go.AddComponent<BoxCollider>();
+            foreach (Collider other in go.GetComponents<Collider>())
+                if (other != box) other.enabled = false;
+            box.isTrigger = true;
+            box.enabled = true;
 
-                string mName = mf.sharedMesh.name.ToLower();
-                if (mName.Contains("wide"))
-                {
-                    box.size = new Vector3(2.4f, 1.2f, 0.9f);
-                    box.center = new Vector3(0f, 0.5f, 0f);
-                }
-                else
-                {
-                    box.size = new Vector3(0.9f, 1.2f, 0.9f);
-                    box.center = new Vector3(0f, 0.5f, 0f);
-                }
-            }
+            Bounds bounds = mf.sharedMesh.bounds;
+            Vector3 size = Vector3.Scale(bounds.size, new Vector3(0.85f, 0.55f, 0.85f));
+            box.size = size;
+            box.center = new Vector3(bounds.center.x, bounds.min.y + size.y * 0.5f, bounds.center.z);
         }
     }
 
@@ -480,6 +473,8 @@ public class PlayerController : MonoBehaviour
         // 1. Horizontal movement
         Vector3 currentVel = body.linearVelocity;
         Vector3 targetHVel = new Vector3(moveInput.x * walkSpeed, 0f, moveInput.z * walkSpeed);
+        if (supportPlatform != null && Time.time <= groundedUntil && currentVel.y <= 0.1f)
+            targetHVel += supportPlatform.Velocity;
         if (externalVelocity.sqrMagnitude > 0.01f)
         {
             targetHVel += externalVelocity;
@@ -506,6 +501,7 @@ public class PlayerController : MonoBehaviour
             jumpBufferCounter = 0f;
             coyoteCounter = 0f;
             groundedUntil = 0f;
+            supportPlatform = null;
         }
 
         // 4. Realistic Physics: Gravity & Drop Acceleration
@@ -578,6 +574,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        TryReachExit(collision.collider);
         if (IsHazard(collision.gameObject))
         {
             RespawnAtSpawn("Obstacle hit - returned to spawn.");
@@ -589,6 +586,7 @@ public class PlayerController : MonoBehaviour
             if (collision.GetContact(i).normal.y > 0.35f)
             {
                 groundedUntil = Time.time + coyoteTime;
+                supportPlatform = collision.rigidbody != null ? collision.rigidbody.GetComponent<MovingPlatform>() : null;
                 break;
             }
         }
@@ -598,6 +596,8 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionStay(Collision collision)
     {
+        if (GameManager.Instance != null && GameManager.Instance.HasKey)
+            TryReachExit(collision.collider);
         if (IsHazard(collision.gameObject))
         {
             RespawnAtSpawn("Obstacle hit - returned to spawn.");
@@ -609,6 +609,7 @@ public class PlayerController : MonoBehaviour
             if (collision.GetContact(i).normal.y > 0.35f)
             {
                 groundedUntil = Time.time + 0.12f;
+                supportPlatform = collision.rigidbody != null ? collision.rigidbody.GetComponent<MovingPlatform>() : null;
                 break;
             }
         }
@@ -639,17 +640,33 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.CollectKey();
             Collect(other);
         }
-        else if (other.CompareTag("Exit") || other.name.ToLower().Contains("finish"))
-        {
-            GameManager.Instance.ReachExit();
-        }
+        else TryReachExit(other);
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (supportPlatform != null && collision.rigidbody == supportPlatform.GetComponent<Rigidbody>())
+            supportPlatform = null;
     }
 
     private void OnTriggerStay(Collider other)
     {
+        if (GameManager.Instance != null && GameManager.Instance.HasKey)
+            TryReachExit(other);
         if (IsHazard(other.gameObject))
         {
             RespawnAtSpawn("Obstacle hit - returned to spawn.");
+        }
+    }
+
+    private void TryReachExit(Collider other)
+    {
+        if (GameManager.Instance == null || !GameManager.Instance.IsPlaying) return;
+        for (Transform current = other.transform; current != null; current = current.parent)
+        {
+            if (!current.CompareTag("Exit")) continue;
+            GameManager.Instance.ReachExit();
+            return;
         }
     }
 
@@ -707,6 +724,7 @@ public class PlayerController : MonoBehaviour
         coyoteCounter = 0f;
         groundedUntil = 0f;
         externalVelocity = Vector3.zero;
+        supportPlatform = null;
 
         Transform targetSpawn = activeSpawnPoint != null ? activeSpawnPoint : spawnPoint;
         Vector3 spawnPos = targetSpawn != null ? targetSpawn.position : initialPosition;

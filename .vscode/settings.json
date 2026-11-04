@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Game_Development-Meadow_Course.slnx"
+    "dotnet.defaultSolution": "Game_Development-W3.slnx"
 }

@@ -4,6 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public bool IsPlaying => state == GameState.Playing;
+    public bool HasKey => hasKey;
 
     [SerializeField] private float timeLimitSeconds = 120f;
 
@@ -74,15 +75,15 @@ public class GameManager : MonoBehaviour
     public void ReachExit()
     {
         if (!IsPlaying) return;
-        if (coins >= totalCoins && diamonds >= totalDiamonds && hasKey)
+        if (hasKey)
         {
             state = GameState.Won;
-            message = "All treasure and the key collected!";
+            message = "You unlocked the door with the key!";
             Debug.Log("[GameManager] YOU WIN!");
         }
         else
         {
-            message = "Exit locked: collect all coins, diamonds and the key.";
+            message = "Door locked: collect the key first.";
             Debug.Log("[GameManager] " + message);
         }
     }
