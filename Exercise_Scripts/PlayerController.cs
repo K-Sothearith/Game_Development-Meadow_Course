@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     [Header("Spawn and Checkpoints")]
     [Tooltip("Primary initial spawn point at course start.")]
     [SerializeField] private Transform spawnPoint;
+    [Tooltip("Section 3 Part 1 checkpoint spawn point (start of spike platform).")]
+    [SerializeField] private Transform checkpointSection3Part1;
     [Tooltip("Section 3 Part 2 checkpoint spawn point (before Start_Line).")]
     [SerializeField] private Transform checkpointSection3;
     [Tooltip("Current active spawn point used for respawns.")]
@@ -70,6 +72,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 initialPosition;
     private Quaternion initialRotation;
     private GameObject fallbackEffectPrefab;
+    private Vector3 externalVelocity;
 
     public Vector3 EffectiveModelOffset
     {
@@ -78,6 +81,28 @@ public class PlayerController : MonoBehaviour
     }
 
     public Transform ActiveSpawnPoint => activeSpawnPoint != null ? activeSpawnPoint : spawnPoint;
+
+    public void Bounce(float upwardVelocity, float forwardVelocity = 0f, Vector3 direction = default)
+    {
+        if (body != null)
+        {
+            Vector3 vel = body.linearVelocity;
+            vel.y = upwardVelocity;
+            body.linearVelocity = vel;
+        }
+
+        if (forwardVelocity > 0f)
+        {
+            Vector3 dir = direction != default ? direction : Vector3.left;
+            dir.y = 0f;
+            dir = dir.normalized;
+            externalVelocity = dir * forwardVelocity;
+        }
+
+        groundedUntil = 0f;
+        coyoteCounter = 0f;
+        Debug.Log($"[PlayerController] Bounced! Upward: {upwardVelocity}, Forward: {forwardVelocity}");
+    }
 
     public void SetActiveSpawnPoint(Transform newSpawnPoint)
     {
@@ -141,11 +166,90 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         EnsureLadderColliders();
+        EnsureSpikeColliders();
+        EnsureSpringColliders();
         if (leftLeg == null || rightLeg == null)
         {
             FindLimbs();
         }
         Debug.Log("[PlayerController] Ready. WASD/arrows move, Space jumps, RMB drag orbits camera, R restarts after the game ends.");
+    }
+
+    private void EnsureSpikeColliders()
+    {
+        // Disable dummy 1x1x1 colliders on parent containers if present
+        GameObject bars = GameObject.Find("bars");
+        if (bars != null) { Collider c = bars.GetComponent<Collider>(); if (c != null) c.enabled = false; }
+        GameObject blocks = GameObject.Find("blocks");
+        if (blocks != null) { Collider c = blocks.GetComponent<Collider>(); if (c != null) c.enabled = false; }
+
+        GameObject spikeParent = GameObject.Find("Spike");
+        if (spikeParent != null)
+        {
+            spikeParent.tag = "Hazard";
+            MeshFilter[] filters = spikeParent.GetComponentsInChildren<MeshFilter>(true);
+            foreach (MeshFilter mf in filters)
+            {
+                if (mf == null || mf.sharedMesh == null) continue;
+                GameObject go = mf.gameObject;
+                go.tag = "Hazard";
+
+                BoxCollider box = go.GetComponent<BoxCollider>();
+                if (box == null) box = go.AddComponent<BoxCollider>();
+                box.isTrigger = true;
+                box.enabled = true;
+
+                string mName = mf.sharedMesh.name.ToLower();
+                if (mName.Contains("wide"))
+                {
+                    box.size = new Vector3(2.4f, 1.2f, 0.9f);
+                    box.center = new Vector3(0f, 0.5f, 0f);
+                }
+                else
+                {
+                    box.size = new Vector3(0.9f, 1.2f, 0.9f);
+                    box.center = new Vector3(0f, 0.5f, 0f);
+                }
+            }
+        }
+    }
+
+    private void EnsureSpringColliders()
+    {
+        GameObject springParent = GameObject.Find("Spring");
+        if (springParent != null)
+        {
+            // Ensure parent broad trigger collider across the 3 springs
+            BoxCollider parentBox = springParent.GetComponent<BoxCollider>();
+            if (parentBox == null) parentBox = springParent.AddComponent<BoxCollider>();
+            parentBox.isTrigger = true;
+            parentBox.enabled = true;
+            parentBox.center = new Vector3(-72.59f, 10.3f, -4.0f);
+            parentBox.size = new Vector3(5.0f, 1.8f, 18.0f);
+
+            SpringPad parentPad = springParent.GetComponent<SpringPad>();
+            if (parentPad == null) parentPad = springParent.AddComponent<SpringPad>();
+            parentPad.SetParameters(24f, 10f, Vector3.left);
+
+            // Ensure each child spring model has its own trigger collider and SpringPad
+            MeshFilter[] filters = springParent.GetComponentsInChildren<MeshFilter>(true);
+            foreach (MeshFilter mf in filters)
+            {
+                if (mf == null || mf.sharedMesh == null) continue;
+                GameObject go = mf.gameObject;
+
+                BoxCollider box = go.GetComponent<BoxCollider>();
+                if (box == null) box = go.AddComponent<BoxCollider>();
+                box.isTrigger = true;
+                box.enabled = true;
+                box.size = new Vector3(0.7f, 0.4f, 0.7f);
+                box.center = new Vector3(0f, 0.15f, 0f);
+
+                SpringPad pad = go.GetComponent<SpringPad>();
+                if (pad == null) pad = go.AddComponent<SpringPad>();
+                pad.SetParameters(24f, 10f, Vector3.left);
+            }
+        }
     }
 
     private void EnsureLadderColliders()
@@ -252,6 +356,18 @@ public class PlayerController : MonoBehaviour
         {
             RespawnAtSpawn("Fell off the course - returned to spawn.");
             return;
+        }
+
+        // Section 3 Part 1 checkpoint detection (auto-activate when reaching Part 1)
+        if (activeSpawnPoint != checkpointSection3Part1 && activeSpawnPoint != checkpointSection3 && checkpointSection3Part1 != null)
+        {
+            float dx = transform.position.x - checkpointSection3Part1.position.x;
+            float dy = Mathf.Abs(transform.position.y - checkpointSection3Part1.position.y);
+            float dz = Mathf.Abs(transform.position.z - checkpointSection3Part1.position.z);
+            if (dx <= 15f && dx >= -180f && dy < 15f && dz < 30f)
+            {
+                SetActiveSpawnPoint(checkpointSection3Part1);
+            }
         }
 
         // Section 3 Part 2 checkpoint detection (auto-activate when reaching Part 2 before start line)
@@ -363,7 +479,17 @@ public class PlayerController : MonoBehaviour
 
         // 1. Horizontal movement
         Vector3 currentVel = body.linearVelocity;
-        body.linearVelocity = new Vector3(moveInput.x * walkSpeed, currentVel.y, moveInput.z * walkSpeed);
+        Vector3 targetHVel = new Vector3(moveInput.x * walkSpeed, 0f, moveInput.z * walkSpeed);
+        if (externalVelocity.sqrMagnitude > 0.01f)
+        {
+            targetHVel += externalVelocity;
+            externalVelocity = Vector3.MoveTowards(externalVelocity, Vector3.zero, 1.0f * Time.fixedDeltaTime);
+            if (CheckGrounded() && body.linearVelocity.y <= 0.1f)
+            {
+                externalVelocity = Vector3.zero;
+            }
+        }
+        body.linearVelocity = new Vector3(targetHVel.x, currentVel.y, targetHVel.z);
 
         // 2. Character rotation: face always points forward in movement direction
         if (moveInput.sqrMagnitude > 0.001f)
@@ -580,6 +706,7 @@ public class PlayerController : MonoBehaviour
         jumpBufferCounter = 0f;
         coyoteCounter = 0f;
         groundedUntil = 0f;
+        externalVelocity = Vector3.zero;
 
         Transform targetSpawn = activeSpawnPoint != null ? activeSpawnPoint : spawnPoint;
         Vector3 spawnPos = targetSpawn != null ? targetSpawn.position : initialPosition;
