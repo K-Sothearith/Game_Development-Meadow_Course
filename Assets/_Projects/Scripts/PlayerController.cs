@@ -7,14 +7,21 @@ public class PlayerController : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 24f;
     [SerializeField] private float rotationSpeed = 720f;
-    [SerializeField] private Transform spawnPoint;
     [SerializeField] private GameObject pickupEffectPrefab;
     [SerializeField] private float effectLifetime = 1.5f;
+
+    [Header("Spawn and Checkpoints")]
+    [Tooltip("Primary initial spawn point at course start.")]
+    [SerializeField] private Transform spawnPoint;
+    [Tooltip("Section 3 Part 2 checkpoint spawn point (before Start_Line).")]
+    [SerializeField] private Transform checkpointSection3;
+    [Tooltip("Current active spawn point used for respawns.")]
+    [SerializeField] private Transform activeSpawnPoint;
 
     [Header("Model and Ground Alignment")]
     [SerializeField] private Transform visualModel;
     [Tooltip("Offset applied to visualModel. Defaults to -0.4 on Y so feet firmly touch the platform surface.")]
-    [SerializeField] private Vector3 modelOffset = new Vector3(0f, -0.4f, 0f);
+    [SerializeField] private Vector3 modelOffset = Vector3.zero;
     [SerializeField] private float modelRotationOffset = 0f;
 
     [Header("Walk and Limb Animation")]
@@ -22,7 +29,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float walkAnimationSpeed = 12f;
     [SerializeField] private float legSwingAngle = 30f;
     [SerializeField] private float armSwingAngle = 22f;
-    [SerializeField] private float bodyBobHeight = 0.35f;
+    [SerializeField] private float bodyBobHeight = 0.25f;
     [SerializeField] private float bodyWaddleAngle = 4.5f;
 
     [Header("Camera and View")]
@@ -70,11 +77,27 @@ public class PlayerController : MonoBehaviour
         set { modelOffset = value; }
     }
 
+    public Transform ActiveSpawnPoint => activeSpawnPoint != null ? activeSpawnPoint : spawnPoint;
+
+    public void SetActiveSpawnPoint(Transform newSpawnPoint)
+    {
+        if (newSpawnPoint != null)
+        {
+            activeSpawnPoint = newSpawnPoint;
+            Debug.Log($"[PlayerController] Active spawn point updated to: {newSpawnPoint.name}");
+        }
+    }
+
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
         initialPosition = transform.position;
+
+        if (activeSpawnPoint == null)
+        {
+            activeSpawnPoint = spawnPoint;
+        }
 
         // Auto-assign camera if needed
         if (playerCamera == null)
@@ -117,11 +140,61 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        EnsureLadderColliders();
         if (leftLeg == null || rightLeg == null)
         {
             FindLimbs();
         }
         Debug.Log("[PlayerController] Ready. WASD/arrows move, Space jumps, RMB drag orbits camera, R restarts after the game ends.");
+    }
+
+    private void EnsureLadderColliders()
+    {
+        // Disable dummy BoxCollider on parent bridge containers so they don't block walking
+        string[] bridgeParentNames = new string[] { "Start-bridge", "End-bridge" };
+        foreach (string bName in bridgeParentNames)
+        {
+            GameObject bGo = GameObject.Find(bName);
+            if (bGo != null)
+            {
+                Collider bc = bGo.GetComponent<Collider>();
+                if (bc != null) bc.enabled = false;
+            }
+        }
+
+        // Find all ladder GameObjects across the scene and ensure they have a smooth, walkable BoxCollider
+        MeshFilter[] meshFilters = FindObjectsByType<MeshFilter>(FindObjectsSortMode.None);
+        foreach (MeshFilter mf in meshFilters)
+        {
+            if (mf == null || mf.sharedMesh == null) continue;
+            string meshName = mf.sharedMesh.name.ToLower();
+            string goName = mf.gameObject.name.ToLower();
+
+            if (meshName.Contains("ladder") || goName.Contains("ladder") || goName.Contains("bridge"))
+            {
+                // Disable bumpy MeshCollider if present
+                MeshCollider mc = mf.GetComponent<MeshCollider>();
+                if (mc != null) mc.enabled = false;
+
+                // Ensure a smooth BoxCollider exists and is enabled
+                BoxCollider box = mf.GetComponent<BoxCollider>();
+                if (box == null)
+                {
+                    box = mf.gameObject.AddComponent<BoxCollider>();
+                }
+                box.enabled = true;
+                if (meshName.Contains("long"))
+                {
+                    box.size = new Vector3(0.55f, 2.05f, 0.2f);
+                    box.center = new Vector3(0f, 1.0f, 0f);
+                }
+                else
+                {
+                    box.size = new Vector3(0.55f, 1.05f, 0.2f);
+                    box.center = new Vector3(0f, 0.5f, 0f);
+                }
+            }
+        }
     }
 
     private void OnValidate()
@@ -179,6 +252,18 @@ public class PlayerController : MonoBehaviour
         {
             RespawnAtSpawn("Fell off the course - returned to spawn.");
             return;
+        }
+
+        // Section 3 Part 2 checkpoint detection (auto-activate when reaching Part 2 before start line)
+        if (activeSpawnPoint != checkpointSection3 && checkpointSection3 != null)
+        {
+            float dx = transform.position.x - checkpointSection3.position.x;
+            float dy = Mathf.Abs(transform.position.y - checkpointSection3.position.y);
+            float dz = Mathf.Abs(transform.position.z - checkpointSection3.position.z);
+            if (dx <= 10f && dx >= -140f && dy < 15f && dz < 25f)
+            {
+                SetActiveSpawnPoint(checkpointSection3);
+            }
         }
 
         // Camera-relative movement inputs
@@ -338,7 +423,7 @@ public class PlayerController : MonoBehaviour
             float halfX = boxCollider.size.x * 0.35f * transform.localScale.x;
             float halfZ = boxCollider.size.z * 0.35f * transform.localScale.z;
 
-            Vector3 centerBottom = transform.position + Vector3.down * (halfY - 0.2f);
+            Vector3 centerBottom = transform.position + boxCollider.center - Vector3.up * (halfY - 0.2f);
             float checkDist = 0.6f;
 
             Vector3[] rayOrigins = new Vector3[]
@@ -354,7 +439,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (Physics.Raycast(rayOrigins[i], Vector3.down, out RaycastHit hit, checkDist, ~0, QueryTriggerInteraction.Ignore))
                 {
-                    if (hit.collider != null && hit.collider.gameObject != gameObject && hit.normal.y > 0.5f && !IsHazard(hit.collider.gameObject))
+                    if (hit.collider != null && hit.collider.gameObject != gameObject && hit.normal.y > 0.35f && !IsHazard(hit.collider.gameObject))
                     {
                         return true;
                     }
@@ -375,7 +460,7 @@ public class PlayerController : MonoBehaviour
 
         for (int i = 0; i < collision.contactCount; i++)
         {
-            if (collision.GetContact(i).normal.y > 0.55f)
+            if (collision.GetContact(i).normal.y > 0.35f)
             {
                 groundedUntil = Time.time + coyoteTime;
                 break;
@@ -395,7 +480,7 @@ public class PlayerController : MonoBehaviour
 
         for (int i = 0; i < collision.contactCount; i++)
         {
-            if (collision.GetContact(i).normal.y > 0.55f)
+            if (collision.GetContact(i).normal.y > 0.35f)
             {
                 groundedUntil = Time.time + 0.12f;
                 break;
@@ -496,11 +581,12 @@ public class PlayerController : MonoBehaviour
         coyoteCounter = 0f;
         groundedUntil = 0f;
 
-        Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : initialPosition;
+        Transform targetSpawn = activeSpawnPoint != null ? activeSpawnPoint : spawnPoint;
+        Vector3 spawnPos = targetSpawn != null ? targetSpawn.position : initialPosition;
         Quaternion spawnRot = initialRotation;
-        if (spawnPoint != null && spawnPoint.rotation != Quaternion.identity)
+        if (targetSpawn != null && targetSpawn.rotation != Quaternion.identity)
         {
-            spawnRot = spawnPoint.rotation;
+            spawnRot = targetSpawn.rotation;
         }
         
         Debug.Log("RESPAWN TRIGGERED! Spawn position: " + spawnPos);

@@ -558,7 +558,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -5674,7 +5674,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -7129,15 +7129,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalScale.x
-      value: 15
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalScale.y
-      value: 15
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalScale.z
-      value: 15
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7145,7 +7145,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8221,6 +8221,7 @@ Transform:
   - {fileID: 209151526}
   - {fileID: 1450966817}
   - {fileID: 1477026862}
+  - {fileID: 99990002}
   m_Father: {fileID: 255520219}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1036928923
@@ -10568,6 +10569,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1477026862}
   - component: {fileID: 1477026863}
+  - component: {fileID: 99990005}
   m_Layer: 0
   m_Name: Saws
   m_TagString: Untagged
@@ -10746,7 +10748,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.0821248, y: 1, z: 1.082125}
-  m_Center: {x: -0.0000019073486, y: 0, z: 0}
+  m_Center: {x: -0.0000019073486, y: 0.5, z: 0}
 --- !u!1001 &1505186154
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11425,7 +11427,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.0821248, y: 1, z: 1.082125}
-  m_Center: {x: 0, y: 0, z: -0.000000029802322}
+  m_Center: {x: 0, y: 0.5, z: -0.000000029802322}
 --- !u!1001 &1626960100
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12954,7 +12956,7 @@ Transform:
   m_GameObject: {fileID: 1789771550}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1147.01, y: 10.5, z: 13.25}
+  m_LocalPosition: {x: 1147.01, y: 10.05, z: 13.25}
   m_LocalScale: {x: 15, y: 15, z: 15}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13407,8 +13409,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 15, y: 15, z: 15}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 6.8, y: 9.1, z: 5.5}
+  m_Center: {x: 0, y: 4.55, z: 0}
 --- !u!4 &1850645414
 Transform:
   m_ObjectHideFlags: 0
@@ -13418,7 +13420,7 @@ Transform:
   m_GameObject: {fileID: 1850645410}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1147.01, y: 10.5, z: 13.25}
+  m_LocalPosition: {x: 1147.01, y: 10.05, z: 13.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -13440,16 +13442,18 @@ MonoBehaviour:
   walkSpeed: 24
   rotationSpeed: 720
   spawnPoint: {fileID: 1789771551}
+  checkpointSection3: {fileID: 99990002}
+  activeSpawnPoint: {fileID: 0}
   pickupEffectPrefab: {fileID: 0}
   effectLifetime: 1.5
   visualModel: {fileID: 835787758}
-  modelOffset: {x: 0, y: -0.4, z: 0}
+  modelOffset: {x: 0, y: 0, z: 0}
   modelRotationOffset: 0
   enableWalkAnimation: 1
   walkAnimationSpeed: 12
   legSwingAngle: 30
   armSwingAngle: 22
-  bodyBobHeight: 0.35
+  bodyBobHeight: 0.25
   bodyWaddleAngle: 4.5
   playerCamera: {fileID: 0}
   jumpVelocity: 18
@@ -13758,7 +13762,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.0821248, y: 1, z: 1.082125}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &1910820840
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14426,7 +14430,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.082125, y: 1, z: 1.082125}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &2082580717
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14823,3 +14827,93 @@ SceneRoots:
   - {fileID: 1850645414}
   - {fileID: 1789771551}
   - {fileID: 588304335}
+--- !u!1 &99990001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 99990002}
+  - component: {fileID: 99990003}
+  - component: {fileID: 99990004}
+  m_Layer: 0
+  m_Name: SpawnPoint_Section3_Part2
+  m_TagString: Respawn
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &99990002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99990001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -2.5, y: -34.7, z: -61.26}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1022405657}
+  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
+--- !u!65 &99990003
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99990001}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 6, y: 10, z: 30}
+  m_Center: {x: 0, y: 4, z: 0}
+--- !u!114 &99990004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99990001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6a78901234567890abcdef1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Checkpoint
+  spawnTransform: {fileID: 99990002}
+  triggerOnce: 1
+  activationEffect: {fileID: 0}
+--- !u!114 &99990005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1477026861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f678901234567890abcdef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovingSaw
+  moveAxis: {x: 0, y: 0, z: 1}
+  distance: 11
+  speed: 2.4
+  timeOffset: 0
+  spinBlade: 1
+  spinSpeed: 360
+  spinAxis: {x: 0, y: 0, z: 1}
+  autoManageChildren: 1
+  staggerStep: 0.65
