@@ -3365,6 +3365,13 @@ MonoBehaviour:
   zoomSpeed: 8
   minZoom: 6
   maxZoom: 50
+  orbitSpeed: 4
+  allowVerticalOrbit: 1
+  verticalOrbitSpeed: 2
+  minHeight: 3
+  maxHeight: 40
+  invertX: 0
+  lockCursorOnRMB: 1
 --- !u!1001 &350699398
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7138,7 +7145,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 9c0cd2ef463dbdc4ebd99ea3909ac69f, type: 3}
       propertyPath: m_LocalPosition.z
@@ -12947,7 +12954,7 @@ Transform:
   m_GameObject: {fileID: 1789771550}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1147.01, y: 9.99, z: 13.25}
+  m_LocalPosition: {x: 1147.01, y: 10.5, z: 13.25}
   m_LocalScale: {x: 15, y: 15, z: 15}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13411,7 +13418,7 @@ Transform:
   m_GameObject: {fileID: 1850645410}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1147.01, y: 9.99, z: 13.25}
+  m_LocalPosition: {x: 1147.01, y: 10.5, z: 13.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -13431,10 +13438,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   walkSpeed: 24
-  jumpVelocity: 14
+  rotationSpeed: 720
   spawnPoint: {fileID: 1789771551}
   pickupEffectPrefab: {fileID: 0}
   effectLifetime: 1.5
+  visualModel: {fileID: 835787758}
+  modelOffset: {x: 0, y: -0.4, z: 0}
+  modelRotationOffset: 0
+  enableWalkAnimation: 1
+  walkAnimationSpeed: 12
+  legSwingAngle: 30
+  armSwingAngle: 22
+  bodyBobHeight: 0.35
+  bodyWaddleAngle: 4.5
+  playerCamera: {fileID: 0}
+  jumpVelocity: 18
+  upwardGravityMultiplier: 1
+  fallGravityMultiplier: 2.5
+  lowJumpMultiplier: 1.2
+  variableJumpHeight: 0
+  maxFallSpeed: 50
+  coyoteTime: 0.2
+  jumpBufferTime: 0.25
+  fallBoundaryY: -5
+  hazardCooldown: 0.4
 --- !u!1001 &1857648337
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -63,11 +63,12 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] Key collected.");
     }
 
-    public void RecordRespawn()
+    public void RecordRespawn(string reason = "Hazard hit - returned to spawn.")
     {
         if (!IsPlaying) return;
         respawns++;
-        message = "Hazard hit - returned to spawn.";
+        message = reason;
+        Debug.Log($"[GameManager] Respawn recorded ({respawns}). {reason}");
     }
 
     public void ReachExit()
