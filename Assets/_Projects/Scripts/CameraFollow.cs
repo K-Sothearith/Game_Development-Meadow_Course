@@ -59,7 +59,6 @@ public class CameraFollow : MonoBehaviour
 
     private void HandleOrbit()
     {
-        // Cursor lock while rotating with RMB
         if (Input.GetMouseButtonDown(1))
         {
             if (lockCursorOnRMB)
@@ -77,7 +76,6 @@ public class CameraFollow : MonoBehaviour
             }
         }
 
-        // Orbit when holding Right Mouse Button
         if (Input.GetMouseButton(1))
         {
             float mouseX = Input.GetAxis("Mouse X");
@@ -85,7 +83,6 @@ public class CameraFollow : MonoBehaviour
 
             if (Mathf.Abs(mouseX) > 0.0001f)
             {
-                // Moving mouse to the right moves camera to the right side of the target
                 float sign = invertX ? 1f : -1f;
                 offset = Quaternion.AngleAxis(mouseX * orbitSpeed * sign, Vector3.up) * offset;
             }

@@ -51,7 +51,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float fallBoundaryY = -5f;
     [SerializeField] private float hazardCooldown = 0.4f;
 
-    // Limb bones (Kenney character skeleton)
     private Transform leftLeg;
     private Transform rightLeg;
     private Transform leftArm;
@@ -126,13 +125,11 @@ public class PlayerController : MonoBehaviour
             activeSpawnPoint = spawnPoint;
         }
 
-        // Auto-assign camera if needed
         if (playerCamera == null)
         {
             playerCamera = Camera.main;
         }
 
-        // Align child model (Oozi) so its feet touch the platform and face matches player forward
         if (visualModel == null)
         {
             Transform found = transform.Find("Oozi");
@@ -141,13 +138,11 @@ public class PlayerController : MonoBehaviour
 
         if (visualModel != null)
         {
-            // Lower model slightly to align feet with platform and reset rotation
             visualModel.localPosition = EffectiveModelOffset;
             visualModel.localRotation = Quaternion.Euler(0f, modelRotationOffset, 0f);
             FindLimbs();
         }
 
-        // Start facing down the track (-X direction)
         initialRotation = Quaternion.LookRotation(Vector3.left, Vector3.up);
         transform.rotation = initialRotation;
         if (body != null) body.rotation = initialRotation;
@@ -179,14 +174,11 @@ public class PlayerController : MonoBehaviour
 
     private void EnsureSpikeColliders()
     {
-        // Disable dummy 1x1x1 colliders on parent containers if present
         GameObject bars = GameObject.Find("bars");
         if (bars != null) { Collider c = bars.GetComponent<Collider>(); if (c != null) c.enabled = false; }
         GameObject blocks = GameObject.Find("blocks");
         if (blocks != null) { Collider c = blocks.GetComponent<Collider>(); if (c != null) c.enabled = false; }
 
-        // Use the visible mesh bounds, including spikes outside the main Spike group.
-        // Keep the damage volume low and inset so clearing a tip is safe.
         foreach (MeshFilter mf in FindObjectsByType<MeshFilter>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (mf.sharedMesh == null || !mf.sharedMesh.name.ToLowerInvariant().Contains("spike")) continue;
@@ -212,7 +204,6 @@ public class PlayerController : MonoBehaviour
         GameObject springParent = GameObject.Find("Spring");
         if (springParent != null)
         {
-            // Ensure parent broad trigger collider across the 3 springs
             BoxCollider parentBox = springParent.GetComponent<BoxCollider>();
             if (parentBox == null) parentBox = springParent.AddComponent<BoxCollider>();
             parentBox.isTrigger = true;
@@ -224,7 +215,6 @@ public class PlayerController : MonoBehaviour
             if (parentPad == null) parentPad = springParent.AddComponent<SpringPad>();
             parentPad.SetParameters(24f, 10f, Vector3.left);
 
-            // Ensure each child spring model has its own trigger collider and SpringPad
             MeshFilter[] filters = springParent.GetComponentsInChildren<MeshFilter>(true);
             foreach (MeshFilter mf in filters)
             {
@@ -247,7 +237,6 @@ public class PlayerController : MonoBehaviour
 
     private void EnsureLadderColliders()
     {
-        // Disable dummy BoxCollider on parent bridge containers so they don't block walking
         string[] bridgeParentNames = new string[] { "Start-bridge", "End-bridge" };
         foreach (string bName in bridgeParentNames)
         {
@@ -259,7 +248,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Find all ladder GameObjects across the scene and ensure they have a smooth, walkable BoxCollider
         MeshFilter[] meshFilters = FindObjectsByType<MeshFilter>(FindObjectsSortMode.None);
         foreach (MeshFilter mf in meshFilters)
         {
@@ -269,11 +257,9 @@ public class PlayerController : MonoBehaviour
 
             if (meshName.Contains("ladder") || goName.Contains("ladder") || goName.Contains("bridge"))
             {
-                // Disable bumpy MeshCollider if present
                 MeshCollider mc = mf.GetComponent<MeshCollider>();
                 if (mc != null) mc.enabled = false;
 
-                // Ensure a smooth BoxCollider exists and is enabled
                 BoxCollider box = mf.GetComponent<BoxCollider>();
                 if (box == null)
                 {
@@ -344,14 +330,12 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Void fall check
         if (transform.position.y < fallBoundaryY)
         {
             RespawnAtSpawn("Fell off the course - returned to spawn.");
             return;
         }
 
-        // Section 3 Part 1 checkpoint detection (auto-activate when reaching Part 1)
         if (activeSpawnPoint != checkpointSection3Part1 && activeSpawnPoint != checkpointSection3 && checkpointSection3Part1 != null)
         {
             float dx = transform.position.x - checkpointSection3Part1.position.x;
@@ -363,7 +347,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Section 3 Part 2 checkpoint detection (auto-activate when reaching Part 2 before start line)
         if (activeSpawnPoint != checkpointSection3 && checkpointSection3 != null)
         {
             float dx = transform.position.x - checkpointSection3.position.x;
@@ -375,13 +358,12 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Camera-relative movement inputs
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Transform view = playerCamera != null ? playerCamera.transform : (Camera.main != null ? Camera.main.transform : null);
-        Vector3 forward = Vector3.left;   // Track forward (-X)
-        Vector3 right = Vector3.forward;  // Track right (+Z)
+        Vector3 forward = Vector3.left;
+        Vector3 right = Vector3.forward;
 
         if (view != null)
         {
@@ -392,10 +374,8 @@ public class PlayerController : MonoBehaviour
             if (camRight.sqrMagnitude > 0.001f) right = camRight.normalized;
         }
 
-        // W moves in forward direction (into the screen), S backward, D right, A left
         moveInput = Vector3.ClampMagnitude(forward * vertical + right * horizontal, 1f);
 
-        // Ground check & coyote time
         if (CheckGrounded())
         {
             coyoteCounter = coyoteTime;
@@ -405,7 +385,6 @@ public class PlayerController : MonoBehaviour
             coyoteCounter -= Time.deltaTime;
         }
 
-        // Jump buffer
         if (Input.GetKeyDown(KeyCode.Space))
         {
             jumpBufferCounter = jumpBufferTime;
@@ -415,7 +394,6 @@ public class PlayerController : MonoBehaviour
             jumpBufferCounter -= Time.deltaTime;
         }
 
-        // Animate character limbs and body movement
         if (visualModel != null && enableWalkAnimation)
         {
             bool isMoving = moveInput.sqrMagnitude > 0.01f;
@@ -428,7 +406,6 @@ public class PlayerController : MonoBehaviour
                 float bobCycle = Mathf.Abs(Mathf.Sin(walkTimer));
                 float waddleCycle = Mathf.Sin(walkTimer * 0.5f);
 
-                // 1. Leg and Arm swinging (natural walk cycle)
                 if (leftLeg != null)
                     leftLeg.localRotation = initialLeftLegRot * Quaternion.Euler(legCycle * legSwingAngle, 0f, 0f);
                 if (rightLeg != null)
@@ -438,14 +415,12 @@ public class PlayerController : MonoBehaviour
                 if (rightArm != null)
                     rightArm.localRotation = initialRightArmRot * Quaternion.Euler(legCycle * armSwingAngle, 0f, 0f);
 
-                // 2. Body bobbing & waddle tilt
                 Vector3 targetOffset = EffectiveModelOffset + new Vector3(0f, bobCycle * bodyBobHeight, 0f);
                 visualModel.localPosition = targetOffset;
                 visualModel.localRotation = Quaternion.Euler(0f, modelRotationOffset, waddleCycle * bodyWaddleAngle);
             }
             else
             {
-                // Smoothly return limbs to rest pose
                 if (leftLeg != null)
                     leftLeg.localRotation = Quaternion.Slerp(leftLeg.localRotation, initialLeftLegRot, 12f * Time.deltaTime);
                 if (rightLeg != null)
@@ -455,7 +430,6 @@ public class PlayerController : MonoBehaviour
                 if (rightArm != null)
                     rightArm.localRotation = Quaternion.Slerp(rightArm.localRotation, initialRightArmRot, 12f * Time.deltaTime);
 
-                // Smoothly return body to grounded resting position
                 visualModel.localPosition = Vector3.Lerp(visualModel.localPosition, EffectiveModelOffset, 14f * Time.deltaTime);
                 visualModel.localRotation = Quaternion.Lerp(visualModel.localRotation, Quaternion.Euler(0f, modelRotationOffset, 0f), 14f * Time.deltaTime);
             }
@@ -470,7 +444,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // 1. Horizontal movement
         Vector3 currentVel = body.linearVelocity;
         Vector3 targetHVel = new Vector3(moveInput.x * walkSpeed, 0f, moveInput.z * walkSpeed);
         if (supportPlatform != null && Time.time <= groundedUntil && currentVel.y <= 0.1f)
@@ -486,7 +459,6 @@ public class PlayerController : MonoBehaviour
         }
         body.linearVelocity = new Vector3(targetHVel.x, currentVel.y, targetHVel.z);
 
-        // 2. Character rotation: face always points forward in movement direction
         if (moveInput.sqrMagnitude > 0.001f)
         {
             Quaternion targetRot = Quaternion.LookRotation(moveInput, Vector3.up);
@@ -494,7 +466,6 @@ public class PlayerController : MonoBehaviour
             body.rotation = transform.rotation;
         }
 
-        // 3. Jump execution
         if (jumpBufferCounter > 0f && coyoteCounter > 0f)
         {
             body.linearVelocity = new Vector3(body.linearVelocity.x, jumpVelocity, body.linearVelocity.z);
@@ -504,11 +475,9 @@ public class PlayerController : MonoBehaviour
             supportPlatform = null;
         }
 
-        // 4. Realistic Physics: Gravity & Drop Acceleration
-        float baseGravityY = Physics.gravity.y; // -9.81 m/s^2
+        float baseGravityY = Physics.gravity.y;
         if (body.linearVelocity.y < 0f)
         {
-            // Falling down: heavier gravity multiplier so the character drops with real physical weight
             float extraFallGravity = baseGravityY * (fallGravityMultiplier - 1f);
             body.AddForce(Vector3.up * extraFallGravity, ForceMode.Acceleration);
         }
@@ -516,19 +485,16 @@ public class PlayerController : MonoBehaviour
         {
             if (variableJumpHeight && !Input.GetKey(KeyCode.Space))
             {
-                // Released jump key early: short-jump gravity for responsive hops
                 float extraLowJumpGravity = baseGravityY * (lowJumpMultiplier - 1f);
                 body.AddForce(Vector3.up * extraLowJumpGravity, ForceMode.Acceleration);
             }
             else if (upwardGravityMultiplier > 1f)
             {
-                // Upward jump arc gravity
                 float extraUpwardGravity = baseGravityY * (upwardGravityMultiplier - 1f);
                 body.AddForce(Vector3.up * extraUpwardGravity, ForceMode.Acceleration);
             }
         }
 
-        // 5. Terminal velocity clamp
         if (body.linearVelocity.y < -maxFallSpeed)
         {
             body.linearVelocity = new Vector3(body.linearVelocity.x, -maxFallSpeed, body.linearVelocity.z);

@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Optional visual script for a coin or diamond. PlayerController handles collection.
 public class Orb : MonoBehaviour
 {
     [SerializeField] private Color[] clickColors = { Color.cyan, Color.magenta, Color.yellow };

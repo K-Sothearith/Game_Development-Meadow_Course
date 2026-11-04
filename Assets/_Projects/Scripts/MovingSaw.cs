@@ -50,13 +50,11 @@ public class MovingSaw : MonoBehaviour
             {
                 Transform child = transform.GetChild(i);
 
-                // Ensure each saw has a trigger collider so it can hit the player
                 Collider col = child.GetComponent<Collider>();
                 if (col == null)
                 {
                     BoxCollider box = child.gameObject.AddComponent<BoxCollider>();
                     box.isTrigger = true;
-                    // Kenney saw blade model bounds
                     box.size = new Vector3(0.85f, 0.85f, 0.35f);
                 }
 
@@ -70,7 +68,6 @@ public class MovingSaw : MonoBehaviour
         }
         else
         {
-            // Individual saw mode
             Collider col = GetComponent<Collider>();
             if (col == null)
             {
@@ -87,7 +84,6 @@ public class MovingSaw : MonoBehaviour
 
         if (isParentController)
         {
-            // Move each child saw horizontally across the platform with staggered timing
             for (int i = 0; i < childSaws.Count; i++)
             {
                 ChildSawData saw = childSaws[i];
@@ -105,7 +101,6 @@ public class MovingSaw : MonoBehaviour
         }
         else
         {
-            // Move this individual saw
             float wave = Mathf.Sin((t + timeOffset) * speed);
             transform.localPosition = initialLocalPos + moveAxis.normalized * (wave * distance);
 

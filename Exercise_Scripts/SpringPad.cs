@@ -70,7 +70,6 @@ public class SpringPad : MonoBehaviour
     private IEnumerator AnimateSquish()
     {
         float elapsed = 0f;
-        // Phase 1: compress along Y
         Vector3 squishedScale = new Vector3(originalScale.x * 1.25f, originalScale.y * 0.35f, originalScale.z * 1.25f);
         float compressTime = squishDuration * 0.25f;
         while (elapsed < compressTime)
@@ -80,7 +79,6 @@ public class SpringPad : MonoBehaviour
             yield return null;
         }
 
-        // Phase 2: spring overshoot stretch along Y
         elapsed = 0f;
         Vector3 stretchedScale = new Vector3(originalScale.x * 0.9f, originalScale.y * 1.4f, originalScale.z * 0.9f);
         float stretchTime = squishDuration * 0.35f;
@@ -91,7 +89,6 @@ public class SpringPad : MonoBehaviour
             yield return null;
         }
 
-        // Phase 3: return smoothly to original scale
         elapsed = 0f;
         float returnTime = squishDuration * 0.4f;
         while (elapsed < returnTime)

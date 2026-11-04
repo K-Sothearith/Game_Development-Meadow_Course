@@ -2,10 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Camera follow and orbit for the Meadow Course / Orb Collector lab.
-/// Attach to the Main Camera. Supports smooth follow, scroll zoom, and RMB drag orbit.
-/// </summary>
 public class CameraFollow : MonoBehaviour
 {
     [Header("Target")]
